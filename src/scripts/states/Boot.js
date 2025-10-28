@@ -17,5 +17,10 @@ Boot.prototype = {
     this.input.maxPointers = 1;
     this.input.addPointer();
   },
-  create: function () {},
+  create: function () {
+    this.game.state.add("Menu", Menu);
+    this.game.state.add("Preload", Preload);
+    this.game.state.add("Splash", Splash);
+    this.game.state.start("Splash");
+  },
 };
