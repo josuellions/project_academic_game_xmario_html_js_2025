@@ -8,6 +8,13 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.caixas, this.solo);
     this.game.physics.arcade.collide(this.caixas, this.plataformas);
     this.game.physics.arcade.collide(this.caixas, this.caixas);
+
+    this.game.physics.arcade.collide(this.jogador, this.pilares);
+    this.game.physics.arcade.collide(this.jogador, this.solo);
+    this.game.physics.arcade.collide(this.jogador, this.plataformas);
+    this.game.physics.arcade.collide(this.jogador, this.caixas);
+
+    this.verificaTeclas();
   },
   create: function () {
     this.physics.startSystem(Phaser.Physics.ARCADE);
@@ -15,6 +22,11 @@ Play.prototype = {
     this.criarCenario();
     this.criarPlataforma();
     this.criarCaixas();
+    this.criaJogador();
+    this.criaBotoes();
+
+    this.teclado = this.game.input.keyboard.createCursorKeys();
+    this.botaoAtivo = "";
   },
   criarCenario: function () {
     // this.game.add.text(400, 160, "Play", {
@@ -134,6 +146,109 @@ Play.prototype = {
 
       caixa.body.gravity.y = 300;
       caixa.body.bounce.y = 0.2 + Math.random() * 0.2;
+    }
+  },
+  criaJogador: function () {
+    this.jogador = this.game.add.sprite(
+      this.game.world.centerX,
+      this.game.world.height - 65,
+      "jogador"
+    );
+
+    this.jogador.vidas = this.vidas;
+    this.jogador.atingido = false;
+
+    this.jogador.animations.add("paraEsquerda", [6, 7]);
+    this.jogador.animations.add("paraDireita", [4, 5]);
+
+    this.game.physics.arcade.enable(this.jogador);
+    this.jogador.enableBody = true;
+    this.jogador.body.gravity.y = 200;
+
+    this.jogador.body.setSize(17, 18, 2, 3);
+
+    this.jogador.body.collideWorldBounds = true;
+  },
+  criaBotoes: function () {
+    var botaoEsquerda = this.game.add.button(
+      0,
+      this.game.height - 64,
+      "botoes_jogo",
+      null,
+      this,
+      4,
+      0,
+      4
+    );
+    (botaoEsquerda.name = "esquerda"),
+      botaoEsquerda.events.onInputDown.add(this.botaoPressionado, this);
+    botaoEsquerda.events.onInputUp.add(this.botaoSolto, this);
+
+    var botaoDireita = this.game.add.button(
+      64,
+      this.game.height - 64,
+      "botoes_jogo",
+      null,
+      this,
+      5,
+      1,
+      5
+    );
+    (botaoDireita.name = "direita"),
+      botaoDireita.events.onInputDown.add(this.botaoPressionado, this);
+    botaoDireita.events.onInputUp.add(this.botaoSolto, this);
+
+    var botaoCima = this.game.add.button(
+      this.game.width - 64,
+      this.game.height - 64,
+      "botoes_jogo",
+      null,
+      this,
+      6,
+      2,
+      6
+    );
+    (botaoCima.name = "cima"),
+      botaoCima.events.onInputDown.add(this.botaoPressionado, this);
+    botaoCima.events.onInputUp.add(this.botaoSolto, this);
+  },
+  botaoPressionado: function (button) {
+    this.botaoAtivo = button.name;
+  },
+  botaoSolto: function () {
+    this.botaoAtivo = "";
+  },
+  verificaTeclas: function () {
+    this.jogador.body.velocity.x = 0;
+
+    if (this.teclado.left.isDown || this.botaoAtivo === "esquerda") {
+      this.jogador.body.velocity.x = -100;
+
+      if (this.jogador.body.touching.down) {
+        this.jogador.animations.play("paraEsquerda", 7, true);
+      }
+    }
+
+    if (this.teclado.right.isDown || this.botaoAtivo === "direita") {
+      this.jogador.body.velocity.x = 100;
+
+      if (this.jogador.body.touching.down) {
+        this.jogador.animations.play("paraDireita", 7, true);
+      }
+    }
+
+    if (
+      (this.teclado.up.isDown || this.botaoAtivo == "cima") &&
+      this.jogador.body.touching.down
+    ) {
+      this.jogador.body.velocity.y = -170;
+      this.jogador.animations.stop();
+
+      if (this.jogador.animations.currentAnim.name === "paraDireita") {
+        this.jogador.frame = 8;
+      } else {
+        this.jogador.frame = 9;
+      }
     }
   },
 };
