@@ -3,12 +3,18 @@ var Play = function (game) {};
 Play.prototype = {
   init: function () {},
   preload: function () {},
-  update: function () {},
+  update: function () {
+    this.game.physics.arcade.collide(this.caixas, this.pilares);
+    this.game.physics.arcade.collide(this.caixas, this.solo);
+    this.game.physics.arcade.collide(this.caixas, this.plataformas);
+    this.game.physics.arcade.collide(this.caixas, this.caixas);
+  },
   create: function () {
     this.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.criarCenario();
     this.criarPlataforma();
+    this.criarCaixas();
   },
   criarCenario: function () {
     // this.game.add.text(400, 160, "Play", {
@@ -70,9 +76,14 @@ Play.prototype = {
     this.game.physics.arcade.enable(this.plataformas);
     this.plataformas.enableBody = true;
 
-    var quantidade = this.game.rnd.integerInRange(10, 15);
+    var minPlataformas = 10;
+    var maxPlataformas = 15;
+    var quantidade = this.game.rnd.integerInRange(
+      minPlataformas,
+      maxPlataformas
+    );
 
-    var posicoesY = [1, 3, 5];
+    var posicoesY = [9, 13, 15];
 
     for (var i = 0; i < quantidade; i++) {
       var x =
@@ -97,6 +108,32 @@ Play.prototype = {
 
       plataforma.body.immovable = true;
       plataforma.body.moves = false;
+    }
+  },
+  criarCaixas: function () {
+    this.caixas = this.game.add.group();
+
+    this.game.physics.arcade.enable(this.caixas);
+    this.caixas.enableBody = true;
+
+    var minCaixas = 5;
+    var maxCaixas = 10;
+    var quantidade = this.rnd.integerInRange(minCaixas, maxCaixas);
+
+    for (var i = 0; i < quantidade; i++) {
+      var x =
+        this.game.rnd.integerInRange(
+          1,
+          Math.floor(this.game.world.width / 21) - 1
+        ) * 21;
+      var y = this.game.rnd.integerInRange(0, 5) * 21;
+
+      var caixa = this.caixas.create(x, y, "caixas");
+
+      caixa.frame = this.game.rnd.integerInRange(0, 3);
+
+      caixa.body.gravity.y = 300;
+      caixa.body.bounce.y = 0.2 + Math.random() * 0.2;
     }
   },
 };
