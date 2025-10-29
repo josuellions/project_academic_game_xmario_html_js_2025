@@ -11,12 +11,12 @@ Play.prototype = {
     this.criarPlataforma();
   },
   criarCenario: function () {
-    this.game.add.text(400, 160, "Play", {
-      fill: "#fff",
-    });
-    this.game.add.text(350, 210, "Game XMario", {
-      fill: "#fff",
-    });
+    // this.game.add.text(400, 160, "Play", {
+    //   fill: "#fff",
+    // });
+    // this.game.add.text(350, 210, "Game XMario", {
+    //   fill: "#fff",
+    // });
 
     this.game.stage.backgroundColor = "#d0f4f7";
     this.game.add.tileSprite(
@@ -30,8 +30,12 @@ Play.prototype = {
 
     this.pilares = this.game.add.group();
 
-    var pilar1 = this.pilares.create(0, 0, "pilares");
-    var pilar2 = this.pilares.create(this.game.world.width - 21, 0, "pilares");
+    var pilar1 = this.pilares.create(0, 200, "pilares");
+    var pilar2 = this.pilares.create(
+      this.game.world.width - 21,
+      200,
+      "pilares"
+    );
 
     this.game.physics.arcade.enable(this.pilares);
 
@@ -60,5 +64,39 @@ Play.prototype = {
     this.solo.body.immovable = true;
     this.solo.body.moves = false;
   },
-  criarPlataforma: function () {},
+  criarPlataforma: function () {
+    this.plataformas = this.game.add.group();
+
+    this.game.physics.arcade.enable(this.plataformas);
+    this.plataformas.enableBody = true;
+
+    var quantidade = this.game.rnd.integerInRange(10, 15);
+
+    var posicoesY = [1, 3, 5];
+
+    for (var i = 0; i < quantidade; i++) {
+      var x =
+        this.game.rnd.integerInRange(
+          0,
+          Math.floor(this.game.world.width / 21 - 1)
+        ) * 21;
+      var y =
+        posicoesY[this.game.rnd.integerInRange(0, posicoesY.length - 1)] * 21;
+
+      var largura = this.game.rnd.integerInRange(2, 3) * 21;
+
+      var plataforma = this.game.add.tileSprite(
+        x,
+        y,
+        largura,
+        21,
+        "solos",
+        this.tipoSolo,
+        this.plataformas
+      );
+
+      plataforma.body.immovable = true;
+      plataforma.body.moves = false;
+    }
+  },
 };
