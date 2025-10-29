@@ -8,12 +8,19 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.caixas, this.solo);
     this.game.physics.arcade.collide(this.caixas, this.plataformas);
     this.game.physics.arcade.collide(this.caixas, this.caixas);
+    this.game.physics.arcade.collide(this.caixas, this.monstros);
 
     this.game.physics.arcade.collide(this.jogador, this.pilares);
     this.game.physics.arcade.collide(this.jogador, this.solo);
     this.game.physics.arcade.collide(this.jogador, this.plataformas);
     this.game.physics.arcade.collide(this.jogador, this.caixas);
+    this.game.physics.arcade.collide(this.jogador, this.monstros);
 
+    this.game.physics.arcade.collide(this.monstros, this.pilares);
+    this.game.physics.arcade.collide(this.monstros, this.solo);
+    this.game.physics.arcade.collide(this.monstros, this.plataformas);
+
+    this.atualizarMonstros();
     this.verificaTeclas();
   },
   create: function () {
@@ -22,8 +29,9 @@ Play.prototype = {
     this.criarCenario();
     this.criarPlataforma();
     this.criarCaixas();
-    this.criaJogador();
-    this.criaBotoes();
+    this.criarJogador();
+    this.criarMonstros();
+    this.criarBotoes();
 
     this.teclado = this.game.input.keyboard.createCursorKeys();
     this.botaoAtivo = "";
@@ -148,7 +156,7 @@ Play.prototype = {
       caixa.body.bounce.y = 0.2 + Math.random() * 0.2;
     }
   },
-  criaJogador: function () {
+  criarJogador: function () {
     this.jogador = this.game.add.sprite(
       this.game.world.centerX,
       this.game.world.height - 65,
@@ -169,7 +177,53 @@ Play.prototype = {
 
     this.jogador.body.collideWorldBounds = true;
   },
-  criaBotoes: function () {
+  criarMonstros: function () {
+    this.monstros = this.game.add.group();
+    this.game.physics.arcade.enable(this.monstros);
+    this.monstros.enableBody = true;
+
+    var min = 5;
+    var max = 10;
+    this.quantidadeMonstros = this.game.rnd.integerInRange(min, max);
+    this.monstrosMortos = 0;
+
+    var direcoes = ["Direita", "Esquerda"];
+
+    for (var i = 0; i < this.quantidadeMonstros; i++) {
+      var tipo = this.game.rnd.integerInRange(0, 6);
+      var mathFloor = Math.floor(this.game.world.width / 21);
+      var x = this.game.rnd.integerInRange(1, mathFloor - 1) * 21;
+      var y = this.game.rnd.integerInRange(0, 5) * 21;
+
+      var monstro = this.monstros.create(x, y, "monstros");
+      monstro.body.setSize(19, 5, 2, 16);
+
+      monstro.body.gravity.y = 300;
+      monstro.body.bounce.x = 0.1 + Math.random() * 0.2;
+
+      var position = tipo * 6;
+      monstro.animations.add("isEsquerda", [0 + position, 1 + position]);
+      monstro.animations.add("isDireita", [4 + position, 5 + position]);
+
+      monstro.direcao =
+        direcoes[this.game.rnd.integerInRange(0, direcoes.length)];
+
+      if (monstro.direcao === "Direita") {
+        monstro.body.velocity.x = this.game.rnd.integerInRange(80, 150);
+      } else {
+        monstro.body.velocity.x = -this.game.rnd.integerInRange(80, 150);
+      }
+
+      monstro.animations.play(
+        "ir" + monstro.direcao,
+        this.game.rnd.integerInRange(4, 7),
+        true
+      );
+    }
+
+    this.monstros.setAll("outOfBoundsKill", true);
+  },
+  criarBotoes: function () {
     var botaoEsquerda = this.game.add.button(
       0,
       this.game.height - 64,
@@ -180,8 +234,9 @@ Play.prototype = {
       0,
       4
     );
-    (botaoEsquerda.name = "esquerda"),
-      botaoEsquerda.events.onInputDown.add(this.botaoPressionado, this);
+
+    botaoEsquerda.name = "esquerda";
+    botaoEsquerda.events.onInputDown.add(this.botaoPressionado, this);
     botaoEsquerda.events.onInputUp.add(this.botaoSolto, this);
 
     var botaoDireita = this.game.add.button(
@@ -194,8 +249,8 @@ Play.prototype = {
       1,
       5
     );
-    (botaoDireita.name = "direita"),
-      botaoDireita.events.onInputDown.add(this.botaoPressionado, this);
+    botaoDireita.name = "direita";
+    botaoDireita.events.onInputDown.add(this.botaoPressionado, this);
     botaoDireita.events.onInputUp.add(this.botaoSolto, this);
 
     var botaoCima = this.game.add.button(
@@ -208,8 +263,9 @@ Play.prototype = {
       2,
       6
     );
-    (botaoCima.name = "cima"),
-      botaoCima.events.onInputDown.add(this.botaoPressionado, this);
+
+    botaoCima.name = "cima";
+    botaoCima.events.onInputDown.add(this.botaoPressionado, this);
     botaoCima.events.onInputUp.add(this.botaoSolto, this);
   },
   botaoPressionado: function (button) {
@@ -250,5 +306,26 @@ Play.prototype = {
         this.jogador.frame = 9;
       }
     }
+  },
+  atualizarMonstros: function () {
+    this.monstros.forEach(function (monstro) {
+      if (monstro.direcao === "Direita" && monstro.body.touching.right) {
+        monstro.direcao = "Esquerda";
+        monstro.body.velocity.x = -this.game.rnd.integerInRange(80, 150);
+        monstro.animations.play(
+          "irEsquerda",
+          this.game.rnd.integerInRange(4, 7),
+          true
+        );
+      } else if (monstro.direcao === "Esquerda" && monstro.body.touching.left) {
+        monstro.direcao = "Direita";
+        monstro.body.velocity.x = this.game.rnd.integerInRange(80, 150);
+        monstro.animations.play(
+          "irDireita",
+          this.game.rnd.integerInRange(4, 7),
+          true
+        );
+      }
+    }, this);
   },
 };
