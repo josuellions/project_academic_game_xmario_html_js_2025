@@ -75,7 +75,7 @@ Preload.prototype = {
       "./src/assets/audio/fimjogo.mp3",
     ]);
 
-    this.load.audio("collisao", [
+    this.load.audio("colisao", [
       "./src/assets/audio/colisao.ogg",
       "./src/assets/audio/colisao.mp3",
     ]);

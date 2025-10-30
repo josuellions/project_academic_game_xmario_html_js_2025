@@ -14,7 +14,13 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.jogador, this.solo);
     this.game.physics.arcade.collide(this.jogador, this.plataformas);
     this.game.physics.arcade.collide(this.jogador, this.caixas);
-    this.game.physics.arcade.collide(this.jogador, this.monstros);
+    this.game.physics.arcade.collide(
+      this.jogador,
+      this.monstros,
+      this.colideComMonstros,
+      null,
+      this
+    );
 
     this.game.physics.arcade.collide(this.monstros, this.pilares);
     this.game.physics.arcade.collide(this.monstros, this.solo);
@@ -327,5 +333,67 @@ Play.prototype = {
         );
       }
     }, this);
+  },
+  colideComMonstros: function (jogador, monstro) {
+    if (jogador.body.touching.down && monstro.body.touching.up) {
+      console.log(">>Jogador pisou no monstro");
+      var som = this.game.add.audio("colisao");
+      som.play();
+
+      monstro.destroy();
+
+      this.monstrosMortos++;
+
+      this.jogador.body.velocity.y = -50;
+
+      if (this.monstros.total <= 0 || this.monstros.length <= 0) {
+        this.game.start(
+          "Score",
+          true,
+          false,
+          this.pontos + this.quantidadeMonstros,
+          this.jogador.vidas
+        );
+      }
+    } else if (!this.jogador.atingido) {
+      console.log(">>Jogador foi atingido");
+      this.jogador.atingido = true;
+      this.jogador.vidas--;
+
+      var som = this.game.add.audio("colisao");
+      som.play();
+
+      this.jogador.animations.stop();
+
+      if (this.jogador.animations.currentAnim.name === "paraDireita") {
+        this.jogador.frame = 12;
+      } else {
+        this.jogador.frame = 13;
+      }
+
+      // if ("vibrate" in window.navigator) {
+      //   window.navigator.vibrate(200);
+      // }
+
+      if (this.jogador.vidas > 0) {
+        this.game.events.add(
+          Phaser.time.SECOND * 2,
+          function () {
+            this.jogador.atingido = false;
+          },
+          this
+        ).autoDestroy = true;
+      } else {
+        var som = this.game.add.audio("fimjogo");
+        som.play();
+
+        this.game.state.start(
+          "GameOver",
+          true,
+          false,
+          this.pontos + this.monstrosMortos
+        );
+      }
+    }
   },
 };
