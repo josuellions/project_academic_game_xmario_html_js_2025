@@ -1,7 +1,13 @@
 var Play = function (game) {};
 
 Play.prototype = {
-  init: function () {},
+  init: function (pontos, vidas) {
+    const quantidadeVidasInicial = 3;
+    const quantidadePontosInicial = 0;
+    this.pontos = pontos != null ? pontos : quantidadePontosInicial;
+
+    this.vidas = vidas != null ? vidas : quantidadeVidasInicial;
+  },
   preload: function () {},
   update: function () {
     this.game.physics.arcade.collide(this.caixas, this.pilares);
@@ -14,19 +20,20 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.jogador, this.solo);
     this.game.physics.arcade.collide(this.jogador, this.plataformas);
     this.game.physics.arcade.collide(this.jogador, this.caixas);
-    this.game.physics.arcade.collide(
-      this.jogador,
-      this.monstros,
-      this.colideComMonstros,
-      null,
-      this
-    );
+    // this.game.physics.arcade.collide(
+    //   this.jogador,
+    //   this.monstros,
+    //   this.colideComMonstros,
+    //   null,
+    //   this
+    // );
 
     this.game.physics.arcade.collide(this.monstros, this.pilares);
     this.game.physics.arcade.collide(this.monstros, this.solo);
     this.game.physics.arcade.collide(this.monstros, this.plataformas);
 
     this.atualizarMonstros();
+    this.criarCronometro();
     this.verificaTeclas();
   },
   create: function () {
@@ -38,6 +45,8 @@ Play.prototype = {
     this.criarJogador();
     this.criarMonstros();
     this.criarBotoes();
+    this.criarCronometro();
+    this.criarVidasJogador();
 
     this.teclado = this.game.input.keyboard.createCursorKeys();
     this.botaoAtivo = "";
@@ -229,6 +238,57 @@ Play.prototype = {
 
     this.monstros.setAll("outOfBoundsKill", true);
   },
+  criarCronometro: function () {
+    var icone = this.game.add.sprite(
+      this.game.world.width - 130,
+      this.game.world.height - 35,
+      "icones"
+    );
+    icone.frame = 0;
+
+    var estilo = {
+      font: "bold 23px Arial",
+      fill: "#fff",
+      align: "center",
+    };
+
+    this.textoCronometro = this.game.add.text(
+      this.game.world.width - 100,
+      this.game.height - 35,
+      "0",
+      estilo
+    );
+    this.textoCronometro.setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
+
+    this.valorCronometro = 30;
+
+    this.time.events.loop(Phaser.Timer.SECOND, this.atualizarCronometro, this);
+  },
+  criarVidasJogador: function () {
+    var icone = this.game.add.sprite(
+      this.game.world.width - 190,
+      this.game.world.height - 35,
+      "icones"
+    );
+
+    icone.frame = 1;
+
+    var estilo = {
+      font: "bold 23px Arial",
+      fill: "#fff",
+      align: "center",
+    };
+
+    this.textoVidas = this.game.add.text(
+      this.game.world.width - 165,
+      this.game.height - 35,
+      "0",
+      estilo
+    );
+    this.textoVidas.setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
+
+    this.textoVidas.setText(this.jogador.vidas);
+  },
   criarBotoes: function () {
     var botaoEsquerda = this.game.add.button(
       0,
@@ -336,7 +396,6 @@ Play.prototype = {
   },
   colideComMonstros: function (jogador, monstro) {
     if (jogador.body.touching.down && monstro.body.touching.up) {
-      console.log(">>Jogador pisou no monstro");
       var som = this.game.add.audio("colisao");
       som.play();
 
@@ -356,9 +415,10 @@ Play.prototype = {
         );
       }
     } else if (!this.jogador.atingido) {
-      console.log(">>Jogador foi atingido");
       this.jogador.atingido = true;
       this.jogador.vidas--;
+
+      this.textoVidas.setText(this.jogador.vidas);
 
       var som = this.game.add.audio("colisao");
       som.play();
@@ -377,7 +437,7 @@ Play.prototype = {
 
       if (this.jogador.vidas > 0) {
         this.game.events.add(
-          Phaser.time.SECOND * 2,
+          Phaser.Time.SECOND * 2,
           function () {
             this.jogador.atingido = false;
           },
@@ -394,6 +454,20 @@ Play.prototype = {
           this.pontos + this.monstrosMortos
         );
       }
+    }
+  },
+  atualizarCronometro: function () {
+    this.valorCronometro--;
+
+    if (this.valorCronometro == 0) {
+      this.game.state.start(
+        "GameOver",
+        true,
+        false,
+        this.pontos + this.monstrosMortos
+      );
+    } else {
+      this.textoCronometro.setText(this.valorCronometro);
     }
   },
 };
