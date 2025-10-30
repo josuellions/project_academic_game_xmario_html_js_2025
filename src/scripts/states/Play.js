@@ -27,6 +27,7 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.monstros, this.plataformas);
 
     this.atualizarMonstros();
+    this.criarCronometro();
     this.verificaTeclas();
   },
   create: function () {
@@ -229,6 +230,32 @@ Play.prototype = {
 
     this.monstros.setAll("outOfBoundsKill", true);
   },
+  criarCronometro: function () {
+    var icone = this.game.add.sprite(
+      this.game.world.width - 130,
+      this.game.world.height - 35,
+      "icones"
+    );
+    icone.frame = 0;
+
+    var estilo = {
+      font: "bold 23px Arial",
+      fill: "#fff",
+      align: "center",
+    };
+
+    this.textoCronometro = this.game.add.text(
+      this.game.world.width - 100,
+      this.game.height - 35,
+      "0",
+      estilo
+    );
+    this.textoCronometro.setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
+
+    this.valorCronometro = 30;
+
+    this.time.events.loop(Phaser.Timer.SECOND, this.atualizarCronometro, this);
+  },
   criarBotoes: function () {
     var botaoEsquerda = this.game.add.button(
       0,
@@ -377,7 +404,7 @@ Play.prototype = {
 
       if (this.jogador.vidas > 0) {
         this.game.events.add(
-          Phaser.time.SECOND * 2,
+          Phaser.Time.SECOND * 2,
           function () {
             this.jogador.atingido = false;
           },
@@ -394,6 +421,20 @@ Play.prototype = {
           this.pontos + this.monstrosMortos
         );
       }
+    }
+  },
+  atualizarCronometro: function () {
+    this.valorCronometro--;
+
+    if (this.valorCronometro == 0) {
+      this.game.state.start(
+        "GameOver",
+        true,
+        false,
+        this.pontos + this.monstrosMortos
+      );
+    } else {
+      this.textoCronometro.setText(this.valorCronometro);
     }
   },
 };
