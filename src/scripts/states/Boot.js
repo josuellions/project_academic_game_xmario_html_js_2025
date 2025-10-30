@@ -18,6 +18,8 @@ Boot.prototype = {
     this.input.addPointer();
   },
   create: function () {
+    this.game.state.add("GameOver", GameOver);
+    this.game.state.add("Score", Score);
     this.game.state.add("Splash", Splash);
     this.game.state.add("Preload", Preload);
     this.game.state.add("Menu", Menu);
