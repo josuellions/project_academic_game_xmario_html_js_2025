@@ -20,13 +20,13 @@ Play.prototype = {
     this.game.physics.arcade.collide(this.jogador, this.solo);
     this.game.physics.arcade.collide(this.jogador, this.plataformas);
     this.game.physics.arcade.collide(this.jogador, this.caixas);
-    // this.game.physics.arcade.collide(
-    //   this.jogador,
-    //   this.monstros,
-    //   this.colideComMonstros,
-    //   null,
-    //   this
-    // );
+    this.game.physics.arcade.collide(
+      this.jogador,
+      this.monstros,
+      this.colideComMonstros,
+      null,
+      this
+    );
 
     this.game.physics.arcade.collide(this.monstros, this.pilares);
     this.game.physics.arcade.collide(this.monstros, this.solo);
@@ -406,7 +406,7 @@ Play.prototype = {
       this.jogador.body.velocity.y = -50;
 
       if (this.monstros.total <= 0 || this.monstros.length <= 0) {
-        this.game.start(
+        this.game.state.start(
           "Score",
           true,
           false,
@@ -436,13 +436,21 @@ Play.prototype = {
       // }
 
       if (this.jogador.vidas > 0) {
-        this.game.events.add(
-          Phaser.Time.SECOND * 2,
+        // this.time.events.add(
+        //   Phaser.Time.SECOND * 2,
+        //   function () {
+        //     this.jogador.atingido = false;
+        //   },
+        //   this
+        // ).autoDestroy = true;
+        var evt = this.time.events.add(
+          Phaser.Timer.SECOND * 2,
           function () {
             this.jogador.atingido = false;
+            this.time.events.remove(evt); // remove manualmente
           },
           this
-        ).autoDestroy = true;
+        );
       } else {
         var som = this.game.add.audio("fimjogo");
         som.play();
